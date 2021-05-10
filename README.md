@@ -1,3 +1,6 @@
+![NPM](https://img.shields.io/npm/l/cf-workers-pinata-api) ![npm](https://img.shields.io/npm/dm/cf-workers-pinata-api) ![npm](https://img.shields.io/npm/v/cf-workers-pinata-api)
+
+
 <img src="https://cdn-images-1.medium.com/max/1200/1*BTGStLRXsQUbkp0t-oxJhQ.png" width="200" />
 <img src="https://workers.cloudflare.com/resources/logo/logo.svg" width="200" />
 
