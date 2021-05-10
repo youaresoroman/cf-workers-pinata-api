@@ -1,6 +1,6 @@
 {
   "name": "cf-workers-pinata-api",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pinata API class for Cloudflare Workers",
   "main": "index.js",
   "scripts": {
