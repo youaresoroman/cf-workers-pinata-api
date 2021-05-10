@@ -1,0 +1,23 @@
+{
+  "name": "cf-workers-pinata-api",
+  "version": "0.1.0",
+  "description": "Pinata API class for Cloudflare Workers",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "api",
+    "cloudflare",
+    "workers"
+  ],
+    "repository": {
+    "type": "git",
+    "url": "https://github.com/youaresoroman/cf-workers-pinata-api.git"
+  },
+    "bugs": {
+    "url": "https://github.com/youaresoroman/cf-workers-pinata-api/issues"
+  },
+  "author": "Roman Yankowski <romanjankowski@pressmail.ch> (https://yankowski.eu)",
+  "license": "MIT"
+}
