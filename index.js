@@ -10,7 +10,8 @@ export default class {
     };
   }
 
-  async hashMetadata(hash, metadata, result = "OK") {
+  async hashMetadata(hash, metadata) {
+    let result = "OK";
     var options = {};
     options.headers = this.options.headers;
     options.method = "PUT";
@@ -34,12 +35,12 @@ export default class {
     return result;
   }
 
-  async pinList(
-    hash,
-    result = {
+  async unpin(
+    hash
+  ) {
+    let result = {
       status: "OK",
     }
-  ) {
     var options = {};
     options.headers = this.options.headers;
     options.method = "DELETE";
@@ -77,7 +78,7 @@ export default class {
           fileData = data.fileData;
         }
       });
-    return fileType ? {fileType,fileData} : {error: "Not found"};
+    return fileType ? { fileType, fileData } : { error: "Not found" };
   }
 
   async pinFile(fileType, fileData, params) {
@@ -90,7 +91,8 @@ export default class {
     );
   }
 
-  async pinJSONToIPFS(data, params = {}, result = {}) {
+  async pinJSONToIPFS(data, params = {}) {
+    let result = {}
     var options = {};
     options.headers = this.options.headers;
     options.method = "POST";
@@ -109,7 +111,8 @@ export default class {
     return result;
   }
 
-  async pinList(params, result = "") {
+  async pinList(params) {
+    let result = "";
     var options = {};
     options.headers = this.options.headers;
     options.method = "GET";
