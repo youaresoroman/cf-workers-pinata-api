@@ -10,61 +10,96 @@ export default class {
     };
   }
 
-  async hashMetadata(hash, metadata) {
-    let result = "OK";
-    var options = {};
-    options.headers = this.options.headers;
-    options.method = "PUT";
-    options.body = metadata;
-    options.body["ipfsPinHash"] = hash;
-    options.body = JSON.stringify(options.body);
-    await fetch("https://api.pinata.cloud/pinning/hashMetadata", options)
-      .then((response) => response.text())
-      .then(function (data) {
-        if (data != "OK" && typeof data != undefined) {
-          try {
-            result = JSON.parse(data);
-          } catch (err) {
-            console.log(err);
-            result = {
-              error: "Unknown",
-            };
-          }
+  handleResult(data) {
+    return new Promise((resolve, reject) => {
+      try {
+        const resultData = JSON.parse(data);
+        if (typeof resultData == "object" && resultData.rows || resultData.ipfsHash || resultData.count || resultData.IpfsHash) {
+          resolve({
+            status: "succeed",
+            content: resultData
+          })
+        } else {
+          reject({
+            status: "failed",
+            content: resultData.error ? resultData.error : resultData
+          })
         }
-      });
-    return result;
+      } catch (err) {
+        if (typeof data == "string" && data == "OK") {
+          resolve({
+            status: "succeed",
+            content: "OK"
+          })
+        } else {
+          reject({
+            status: "failed",
+            content: data
+          })
+        }
+      }
+    })
   }
 
-  async unpin(
-    hash
-  ) {
-    let result = {
-      status: "OK",
-    }
-    var options = {};
-    options.headers = this.options.headers;
-    options.method = "DELETE";
-    await fetch("https://api.pinata.cloud/pinning/unpin/" + hash, options)
-      .then((response) => response.text())
-      .then(function (data) {
-        if (data != "OK" && typeof data != undefined) {
-          const resp = JSON.parse(data);
-          result = {
-            status: "Error",
-            message: resp.error,
-          };
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    return base64js.fromByteArray(result);
+  async hashMetadata(hash, metadata) {
+    return new Promise(async (resolve, reject) => {
+      const options = {
+        ...this.options,
+        method: "PUT",
+        body: JSON.stringify({
+          ipfsPinHash: hash,
+          keyvalues: metadata
+        })
+      }
+      await fetch("https://api.pinata.cloud/pinning/hashMetadata", options)
+        .then((response) => response.text())
+        .then((data) => {
+          this.handleResult(data)
+            .then((result) => {
+              resolve(result)
+            })
+            .catch((result) => {
+              reject(result)
+            })
+        })
+        .catch(() => {
+          reject({
+            status: "failed",
+            content: "Connection failed"
+          })
+        });
+    });
+  }
+
+  async unpin(hash) {
+    return new Promise(async (resolve, reject) => {
+      const options = {
+        ...this.options,
+        method: "DELETE"
+      }
+      await fetch("https://api.pinata.cloud/pinning/unpin/" + hash, options)
+        .then((response) => response.text())
+        .then((data) => {
+          this.handleResult(data)
+            .then((result) => {
+              resolve(result)
+            })
+            .catch((result) => {
+              reject(result)
+            })
+        })
+        .catch(() => {
+          reject({
+            status: "failed",
+            content: "Connection failed"
+          })
+        });
+    });
   }
 
   async getFile(hash) {
     let fileData;
     let fileType;
-
     await fetch(`https://gateway.pinata.cloud/ipfs/${hash}`)
       .then((res) => res.text())
       .then((data) => {
@@ -82,53 +117,49 @@ export default class {
   }
 
   async pinFile(fileType, fileData, params) {
-    return await this.pinJSON(
-      {
-        fileType,
-        fileData,
-      },
-      params
-    );
+    return new Promise(async (resolve, reject) => {
+      await this.pinJSONToIPFS(
+        {
+          fileType,
+          fileData,
+        },
+        params
+      )
+        //.then(async data => await data.json())
+        .then(data => resolve(data))
+        .catch(() => {
+          reject({ error: "Upload fail" })
+        })
+    })
   }
 
   async pinJSONToIPFS(data, params = {}) {
-    let result = {}
-    var options = {};
-    options.headers = this.options.headers;
-    options.method = "POST";
-    options.body = JSON.stringify({
-      pinataMetadata: params,
-      pinataContent: data,
-    });
-    await fetch("https://api.pinata.cloud/pinning/pinJSONToIPFS", options)
-      .then((response) => response.json())
-      .then(function (data) {
-        result = data;
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    return result;
-  }
-
-  async pinList(params) {
-    let result = "";
-    var options = {};
-    options.headers = this.options.headers;
-    options.method = "GET";
-    const query = Object.keys(params)
-      .map(
-        (key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`
-      )
-      .join("&");
-    await fetch("https://api.pinata.cloud/data/pinList?" + query, options)
-      .then((response) => response.json())
-      .then((data) => {
-        result = data.rows;
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    return result;
+    return new Promise(async (resolve, reject) => {
+      const options = {
+        ...this.options,
+        method: "POST",
+        body: JSON.stringify({
+          pinataMetadata: params,
+          pinataContent: data,
+        })
+      }
+      await fetch("https://api.pinata.cloud/pinning/pinJSONToIPFS", options)
+        .then((response) => response.text())
+        .then((data) => {
+          this.handleResult(data)
+            .then((result) => {
+              resolve(result)
+            })
+            .catch((result) => {
+              reject(result)
+            })
+        })
+        .catch(() => {
+          reject({
+            status: "failed",
+            content: "Connection failed"
+          })
+        });
+    })
   }
 }
