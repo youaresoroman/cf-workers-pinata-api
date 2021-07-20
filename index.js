@@ -71,6 +71,64 @@ export default class {
     });
   }
 
+  async pinJobs() {
+    return new Promise(async (resolve, reject) => {
+      const options = {
+        ...this.options,
+        method: "GET"
+      }
+      await fetch("https://api.pinata.cloud/pinning/pinJobs?sort=DESC&limit=1000", options)
+        .then((response) => response.text())
+        .then((data) => {
+          this.handleResult(data)
+            .then((result) => {
+              resolve(result)
+            })
+            .catch((result) => {
+              reject(result)
+            })
+        })
+        .catch(() => {
+          reject({
+            status: "failed",
+            content: "Connection failed"
+          })
+        });
+    });
+  }
+
+  async pinHash(hashToPin, pinataOptions = {}) {
+    return new Promise(async (resolve, reject) => {
+      const body = {
+        hashToPin,
+        ...pinataOptions
+      }
+      
+      const options = {
+        ...this.options,
+        body: JSON.stringify(body),
+        method: "POST"
+      }
+      await fetch("https://api.pinata.cloud/pinning/pinByHash/", options)
+        .then((response) => response.text())
+        .then((data) => {
+          this.handleResult(data)
+            .then((result) => {
+              resolve(result)
+            })
+            .catch((result) => {
+              reject(result)
+            })
+        })
+        .catch(() => {
+          reject({
+            status: "failed",
+            content: "Connection failed"
+          })
+        });
+    });
+  }
+
   async unpin(hash) {
     return new Promise(async (resolve, reject) => {
       const options = {
@@ -160,6 +218,52 @@ export default class {
             content: "Connection failed"
           })
         });
+    })
+  }
+
+  async pinList(params) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const options = {
+          ...this.options
+        }
+
+        const { metadata } = params
+        let metadataString = ""
+
+        const firstPartOfQuery = Object.entries(params)
+          .filter(([key, value]) => key != "metadata" && value.lenght > 0)
+          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+          .join("&");
+
+        metadataString = metadata.name ? `&metadata[name]=${params.metadata.name}` : "";
+        metadataString = metadata.keyvalues ? `${metadataString}&metadata[keyvalues]=${JSON.stringify(metadata.keyvalues)}` : metadataString;
+
+        const query = `https://api.pinata.cloud/data/pinList?${firstPartOfQuery}${metadataString}`
+
+        await fetch(query, options)
+          .then((response) => response.text())
+          .then((data) => {
+            this.handleResult(data)
+              .then((result) => {
+                resolve(result)
+              })
+              .catch((result) => {
+                reject(result)
+              })
+          })
+          .catch(() => {
+            reject({
+              status: "failed",
+              content: "Connection failed"
+            })
+          });
+      } catch (error) {
+        reject({
+          status: "failed",
+          content: "Operation failed"
+        })
+      }
     })
   }
 }
